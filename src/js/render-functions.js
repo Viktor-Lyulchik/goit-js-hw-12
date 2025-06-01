@@ -7,6 +7,7 @@ let galleryLB;
 
 const gallery = document.querySelector('.gallery');
 const loader = document.querySelector('.loader');
+const loadMoreBtn = document.querySelector('.load-more');
 
 export function createGallery(images) {
   const listHTML = images
@@ -48,7 +49,7 @@ export function createGallery(images) {
   </li>`
     )
     .join('');
-  gallery.innerHTML = listHTML;
+  gallery.insertAdjacentHTML('beforeend', listHTML);
 
   reBuildGallery();
 }
@@ -77,4 +78,25 @@ export function showLoader() {
 
 export function hideLoader() {
   loader.style.display = 'none';
+}
+
+export function showLoadMoreButton() {
+  loadMoreBtn.style.display = 'block';
+}
+
+export function hideLoadMoreButton() {
+  loadMoreBtn.style.display = 'none';
+}
+
+export function scrollAfterNewImages() {
+  const firstCard = document.querySelector('.gallery .gallery-item');
+
+  if (firstCard) {
+    const cardHeight = firstCard.getBoundingClientRect().height;
+
+    window.scrollBy({
+      top: cardHeight * 2,
+      behavior: 'smooth',
+    });
+  }
 }
