@@ -15,6 +15,7 @@ import {
 
 const queryForm = document.querySelector('.form');
 const loadMoreBtn = document.querySelector('.load-more');
+
 let page = 1;
 let totalPages = 0;
 let userQuery = '';
