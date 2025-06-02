@@ -16,13 +16,61 @@ import {
 const queryForm = document.querySelector('.form');
 const loadMoreBtn = document.querySelector('.load-more');
 
-let page = 1;
+let page;
 let totalPages = 0;
 let userQuery = '';
 
 iziToast.settings({
   position: 'topRight',
 });
+
+const getImagesInitQuery = async () => {
+  try {
+    const { hits, totalHits } = await getImagesByQuery(userQuery, page);
+    totalPages = Math.ceil(totalHits / 15);
+
+    if (hits.length > 0) {
+      createGallery(hits);
+      page++;
+      showLoadMoreButton();
+    } else {
+      clearGallery();
+      hideLoadMoreButton();
+      iziToast.error({
+        title: 'Error',
+        message:
+          'Sorry, there are no images matching your search query.Please try again!',
+      });
+    }
+  } catch (error) {
+    hideLoadMoreButton();
+    iziToast.error({
+      title: 'Error',
+      message: 'Error loading images from the server!',
+    });
+  } finally {
+    hideLoader();
+  }
+};
+
+const getImagesAppendQuery = async () => {
+  try {
+    const { hits } = await getImagesByQuery(userQuery, page);
+    if (hits.length > 0) {
+      createGallery(hits);
+      scrollAfterNewImages();
+      page++;
+    }
+  } catch (error) {
+    hideLoadMoreButton();
+    iziToast.error({
+      title: 'Error',
+      message: 'Error loading images from the server!',
+    });
+  } finally {
+    hideLoader();
+  }
+};
 
 queryForm.addEventListener('submit', event => {
   event.preventDefault();
@@ -42,43 +90,14 @@ queryForm.addEventListener('submit', event => {
     return;
   }
 
-  getImagesByQuery(userQuery, page)
-    .then(response => {
-      const hits = response.data.hits;
-      totalPages = Math.ceil(response.data.totalHits / 15);
+  page = 1;
 
-      if (hits.length > 0) {
-        createGallery(hits);
-        page++;
-        showLoadMoreButton();
-      } else {
-        clearGallery();
-        hideLoadMoreButton();
-        iziToast.error({
-          title: 'Error',
-          message:
-            'Sorry, there are no images matching your search query.Please try again!',
-        });
-      }
-    })
-    .catch(() => {
-      hideLoadMoreButton();
-      iziToast.error({
-        title: 'Error',
-        message: 'Error loading images from the server!',
-      });
-    })
-    .finally(() => hideLoader());
+  getImagesInitQuery();
 
   queryForm.reset();
 });
 
 loadMoreBtn.addEventListener('click', event => {
-  if (!userQuery) {
-    hideLoader();
-    return;
-  }
-
   if (page > totalPages) {
     hideLoadMoreButton();
     return iziToast.info({
@@ -88,21 +107,5 @@ loadMoreBtn.addEventListener('click', event => {
 
   showLoader();
 
-  getImagesByQuery(userQuery, page)
-    .then(response => {
-      const hits = response.data.hits;
-      if (hits.length > 0) {
-        createGallery(hits);
-        scrollAfterNewImages();
-        page++;
-      }
-    })
-    .catch(() => {
-      hideLoadMoreButton();
-      iziToast.error({
-        title: 'Error',
-        message: 'Error loading images from the server!',
-      });
-    })
-    .finally(() => hideLoader());
+  getImagesAppendQuery();
 });
